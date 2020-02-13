@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil import parser
 
-from app import BASE_URL, HEADERS, LOGGER, RESOURCE_IDS, RESOURCE_NAMES 
+from app import BASE_URL, HEADERS, LOGGER, RESOURCE_IDS, RESOURCE_NAMES
 
 
 def download_deep_explorations(region_id):
@@ -38,7 +38,7 @@ def parse_deep_explorations(html):
         }
     return deep_explorations
 
-def deep_explorate(state_id, capital_id, resource_type, amount, alt):
+def deep_explorate(state_id, region_id, resource_type, amount, alt):
     """Main function"""
     response = requests.get(
         '{}main/content'.format(BASE_URL),
@@ -48,17 +48,13 @@ def deep_explorate(state_id, capital_id, resource_type, amount, alt):
     state_div = soup.find_all('div', {'class': 'index_case_50'})[1]
     action = state_div.findChild()['action']
     current_state_id = int(re.sub('.*/', '', action))
-    LOGGER.info('Current state %s', current_state_id)
     params = {}
-    if current_state_id != state_id:
-        LOGGER.info(
-            'Not in the correct state, %s instead of %s', 
-            current_state_id, state_id
-        )
-    else:
+    LOGGER.info(
+        'Region belongs to state %s, current state %s',
+        state_id, current_state_id
+    )
+    if current_state_id == state_id:
         params = {}
-        # if current_state_id != state_id:
-        #     params['alt'] = True
         if alt:
             params['alt'] = True
 
@@ -68,23 +64,24 @@ def deep_explorate(state_id, capital_id, resource_type, amount, alt):
 
         requests.post(
             '{}parliament/donew/34/{}_{}/{}'.format(
-                BASE_URL, resource_type, amount, capital_id
+                BASE_URL, resource_type, amount, region_id
             ),
             headers=HEADERS,
             params=params,
             json=json_data
         )
+        LOGGER.info(
+            'Created deep exploration law for %s in %s',
+            RESOURCE_IDS[resource_type], region_id
+        )
 
     response = requests.get(
-        '{}parliament/index/{}'.format(BASE_URL, capital_id),
+        '{}parliament/index/{}'.format(BASE_URL, region_id),
         headers=HEADERS
     )
     soup = BeautifulSoup(response.text, 'html.parser')
     active_laws = soup.find('div', {'id': 'parliament_active_laws'})
-    deep_exploration_name = RESOURCE_IDS[resource_type]
-    exploration_laws = active_laws.findAll(text='Deep exploration,')
-    LOGGER.info('Resources exploration: state, %s deep_explorations', deep_exploration_name)
-    for exploration_law in exploration_laws:
+    for exploration_law in active_laws.findAll(text='Deep exploration,'):
         action = exploration_law.parent.parent['action']
         action = action.replace('law', 'votelaw')
         result = requests.post(
@@ -93,3 +90,7 @@ def deep_explorate(state_id, capital_id, resource_type, amount, alt):
             headers=HEADERS
         )
         LOGGER.info('Response: %s', result.text)
+    LOGGER.info(
+        'Accepted deep exploration law for %s in %s',
+        RESOURCE_IDS[resource_type], region_id
+    )

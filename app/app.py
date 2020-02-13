@@ -3,7 +3,7 @@
 import random
 from datetime import datetime, timedelta
 
-from app import LOGGER, SCHEDULER, RESOURCE_IDS, DEEP_EXPLORATION_MAX , jobs, api, database
+from app import LOGGER, SCHEDULER, RESOURCE_IDS, DEEP_EXPLORATION_MAX, jobs, api, database
 
 
 def sync_deep_exploration(region_id):
@@ -11,32 +11,36 @@ def sync_deep_exploration(region_id):
     deep_explorations = api.download_deep_explorations(region_id)
     database.save_deep_explorations(region_id, deep_explorations)
 
-def start_orders():
+def schedule_orders():
     """start deep exploration orders"""
     orders = database.get_orders()
     for order in orders:
+        schedule_order(order)
+
+def schedule_order(order):
+    """start deep exploration order"""
+    deep_exploration = database.get_active_deep_exploration(order.region_id)
+    if deep_exploration is None:
+        sync_deep_exploration(order.region_id)
         deep_exploration = database.get_active_deep_exploration(order.region_id)
-        if deep_exploration is None:
-            sync_deep_exploration(order.region_id)
-        deep_exploration = database.get_active_deep_exploration(order.region_id)
-        start_date = deep_exploration.until_date_time if deep_exploration else datetime.now()
-        max_seconds = 300
-        random_seconds = random.randint(0, max_seconds)
-        scheduled_date = start_date + timedelta(seconds=random_seconds)
-        LOGGER.info(
-            'Deep exploration at %s for %s in %s',
-            scheduled_date.strftime("%Y-%m-%d %H:%M"),
-            RESOURCE_IDS[order.resource_type],
-            order.region_id
-        )
-        SCHEDULER.add_job(
-            jobs.start_deep_exploration,
-            'date',
-            args=[order.id],
-            id='deep_exploration_{}_{}'.format(order.region_id, order.resource_type),
-            replace_existing=True,
-            run_date=scheduled_date
-        )
+    start_date = deep_exploration.until_date_time if deep_exploration else datetime.now()
+    max_seconds = 300
+    random_seconds = random.randint(0, max_seconds)
+    scheduled_date = start_date + timedelta(seconds=random_seconds)
+    LOGGER.info(
+        'Schedule deep exploration at %s for %s in %s',
+        scheduled_date.strftime("%Y-%m-%d %H:%M:%S"),
+        RESOURCE_IDS[order.resource_type],
+        order.region_id
+    )
+    SCHEDULER.add_job(
+        jobs.start_deep_exploration_order,
+        'date',
+        args=[order.id],
+        id='deep_exploration_{}_{}'.format(order.region_id, order.resource_type),
+        replace_existing=True,
+        run_date=scheduled_date
+    )
 
 def start_deep_exploration(order_id):
     """Start deep exploration"""
@@ -50,12 +54,9 @@ def start_deep_exploration(order_id):
     }
     if order.order_type in order_types:
         points = order_types[order.order_type](order)
-        print(points)
         state = database.get_state(order.region_id)
-        api.deep_explorate(
-            state.id, order.region_id, order.resource_type, points, False
-        )
-
+        api.deep_explorate(state.id, order.region_id, order.resource_type, points, False)
+    schedule_order(order)
 
 def get_max_points(order):
     """Get  deep exploration points for order"""

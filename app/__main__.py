@@ -7,9 +7,9 @@ from app import SCHEDULER, LOGGER, RESOURCE_NAMES, jobs
 
 
 if __name__ == '__main__':
-    # jobs.start_orders()
+    jobs.schedule_orders()
     # jobs.sync_deep_exploration(4002)
-    jobs.start_deep_exploration(1)
+    # jobs.start_deep_exploration_order(2)
     sys.exit()
 
     try:
