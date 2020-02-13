@@ -74,6 +74,14 @@ RESOURCE_NAMES = {
     'diamonds': 15,
 }
 
+DEEP_EXPLORATION_MAX = {
+    0: 637,
+    3: 371,
+    4: 356,
+    11: 25,
+    15: 27,
+}
+
 RESOURCE_MAX = {
     0: 2500,
     3: 600,

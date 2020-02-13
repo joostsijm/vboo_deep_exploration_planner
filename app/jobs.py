@@ -3,6 +3,14 @@
 from app import app, api
 
 
-def check_deep_exploration(region_id):
+def sync_deep_exploration(region_id):
     """Check resources and refill if necessary"""
-    app.check_deep_exploration(region_id)
+    app.sync_deep_exploration(region_id)
+
+def start_orders():
+    """Start deep exploration orders"""
+    app.start_orders()
+
+def start_deep_exploration(order_id):
+    """Start deep exploration"""
+    app.start_deep_exploration(order_id)

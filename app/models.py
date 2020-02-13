@@ -26,6 +26,17 @@ class Region(Base):
     uranium_limit = Column(SmallInteger)
     diamond_limit = Column(SmallInteger)
 
+    def get_limit(self, resource_type):
+        """get limit for resoruce type"""
+        limit = {
+            0: self.gold_limit,
+            3: self.oil_limit,
+            4: self.ore_limit,
+            11: self.uranium_limit,
+            15: self.diamond_limit,
+        }
+        return limit[resource_type] if resource_type in limit else None
+
 
 class StateRegion(Base):
     """Model for state region"""
@@ -34,6 +45,15 @@ class StateRegion(Base):
     region_id = Column(Integer, ForeignKey('region.id'), primary_key=True)
     from_date_time = Column(DateTime, primary_key=True)
     until_date_time = Column(DateTime)
+
+    region = relationship(
+        'Region',
+        backref=backref('state_regions', lazy='dynamic')
+    )
+    state = relationship(
+        'State',
+        backref=backref('state_regions', lazy='dynamic')
+    )
 
 
 class DeepExploration(Base):
@@ -59,6 +79,12 @@ class DeepExplorationOrder(Base):
     amount = Column(Integer)
     from_date_time = Column(DateTime)
     until_date_time = Column(DateTime)
+
+    region_id = Column(Integer, ForeignKey('region.id'))
+    region = relationship(
+        'Region',
+        backref=backref('resource_stats', lazy='dynamic')
+    )
 
     order_types = {
         0: 'max',

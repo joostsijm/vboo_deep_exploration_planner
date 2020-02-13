@@ -2,10 +2,10 @@
 
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy.orm import joinedload
+from sqlalchemy import or_
 
 from app import SESSION, RESOURCE_MAX
-from app.models import Region, DeepExploration
+from app.models import State, Region, DeepExploration, DeepExplorationOrder, StateRegion
 
 
 def save_deep_explorations(region_id, deep_explorations):
@@ -45,3 +45,42 @@ def save_region(session, region_id):
     region.name = 'UNKNOWN'
     session.add(region)
     return region
+
+def get_orders():
+    """Get deep exploration orders"""
+    session = SESSION()
+    date_time_now = datetime.now()
+    orders = session.query(DeepExplorationOrder) \
+        .filter(DeepExplorationOrder.from_date_time <= date_time_now) \
+        .filter(or_(
+            DeepExplorationOrder.until_date_time >= date_time_now,
+            DeepExplorationOrder.until_date_time == None
+        )) \
+        .all()
+    session.close()
+    return orders
+
+def get_order(order_id):
+    """Get order by id"""
+    session = SESSION()
+    order = session.query(DeepExplorationOrder).get(order_id)
+    session.close()
+    return order
+
+def get_region(region_id):
+    """Get region by id"""
+    session = SESSION()
+    region = session.query(Region).get(region_id)
+    session.close()
+    return region
+
+def get_state(region_id):
+    """Get state from region"""
+    session = SESSION()
+    state = session.query(State) \
+        .join(State.state_regions) \
+        .filter(StateRegion.region_id == region_id) \
+        .filter(StateRegion.until_date_time == None) \
+        .first()
+    session.close()
+    return state
