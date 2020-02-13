@@ -7,10 +7,19 @@ from app import SCHEDULER, LOGGER, RESOURCE_NAMES, jobs
 
 
 if __name__ == '__main__':
-    jobs.schedule_orders()
+    LOGGER.info('Starting application')
     # jobs.sync_deep_exploration(4002)
     # jobs.start_deep_exploration_order(2)
-    sys.exit()
+    # sys.exit()
+
+    jobs.schedule_orders()
+    # backup job to reschedule orders
+    SCHEDULER.add_job(
+        jobs.schedule_orders,
+        'cron',
+        id='schedule_orders',
+        hour='3'
+    )
 
     try:
         while True:

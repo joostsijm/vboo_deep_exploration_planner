@@ -40,6 +40,7 @@ def parse_deep_explorations(html):
 
 def deep_explorate(state_id, region_id, resource_type, amount, alt):
     """Main function"""
+    return
     response = requests.get(
         '{}main/content'.format(BASE_URL),
         headers=HEADERS
