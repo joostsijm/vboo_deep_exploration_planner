@@ -1,10 +1,10 @@
 """Main application"""
 
 import re
+from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
-from dateutil import parser
 
 from app import BASE_URL, HEADERS, LOGGER, RESOURCE_IDS, RESOURCE_NAMES
 
@@ -34,13 +34,12 @@ def parse_deep_explorations(html):
         columns = deep_exploration_tree.find_all('td')
         deep_explorations[deep_exploration_id] = {
             'resource_type': RESOURCE_NAMES[columns[1].text.replace(' resources', '').lower()],
-            'until_date_time': parser.parse(columns[2].string),
+            'until_date_time': datetime.fromtimestamp(int(columns[2]['rat'])),
         }
     return deep_explorations
 
 def deep_explorate(state_id, region_id, resource_type, amount, alt):
     """Main function"""
-    return
     response = requests.get(
         '{}main/content'.format(BASE_URL),
         headers=HEADERS

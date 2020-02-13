@@ -66,7 +66,6 @@ def start_deep_exploration(order_id):
             RESOURCE_IDS[order.resource_type],
             order.region_id
         )
-        return
         api.deep_explorate(state.id, order.region_id, order.resource_type, points, False)
     schedule_order(order)
 
