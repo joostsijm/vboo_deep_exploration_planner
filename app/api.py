@@ -53,10 +53,9 @@ def deep_explorate(state_id, region_id, resource_type, amount, alt):
     state_div = soup.find_all('div', {'class': 'index_case_50'})[1]
     action = state_div.findChild()['action']
     current_state_id = int(re.sub('.*/', '', action))
-    params = {}
     LOGGER.info(
-        'Region belongs to state %s, current state %s',
-        state_id, current_state_id
+        '%s: region belongs to state %s, current state %s',
+        region_id, state_id, current_state_id
     )
     if current_state_id == state_id:
         json_data = {
@@ -72,8 +71,8 @@ def deep_explorate(state_id, region_id, resource_type, amount, alt):
             json=json_data
         )
         LOGGER.info(
-            'Created deep exploration law for %s in %s',
-            RESOURCE_IDS[resource_type], region_id
+            '%s: created deep exploration law for %s',
+            region_id, RESOURCE_IDS[resource_type]
         )
 
     response = requests.get(
@@ -92,6 +91,6 @@ def deep_explorate(state_id, region_id, resource_type, amount, alt):
         )
         LOGGER.info('Response: %s', result.text)
     LOGGER.info(
-        'Accepted deep exploration law for %s in %s',
-        RESOURCE_IDS[resource_type], region_id
+        '%s: accepted deep exploration law for %s',
+        region_id, RESOURCE_IDS[resource_type]
     )

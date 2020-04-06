@@ -1,5 +1,6 @@
 """General function module"""
 
+import time
 import random
 from datetime import datetime, timedelta
 
@@ -11,14 +12,17 @@ def schedule_orders():
     """start deep exploration orders"""
     LOGGER.info('Start schedule orders')
     orders = database.get_orders()
+    for job in SCHEDULER.get_jobs():
+        print(job)
+        if 'deep_exploration' in job.id:
+            job.remove()
     for order in orders:
         schedule_order(order)
     LOGGER.info('Finish schedule orders')
 
-
 def sync_deep_exploration(region_id):
     """Check resources and refill if necessary"""
-    LOGGER.info('Sync deep exploration history for %s', region_id)
+    LOGGER.info('%s: sync deep exploration history', region_id)
     deep_explorations = api.download_deep_explorations(region_id)
     database.save_deep_explorations(region_id, deep_explorations)
 
@@ -29,14 +33,14 @@ def schedule_order(order):
         sync_deep_exploration(order.region_id)
         deep_exploration = database.get_active_deep_exploration(order.region_id)
     start_date = deep_exploration.until_date_time if deep_exploration else datetime.now()
-    max_seconds = 300
+    max_seconds = 5 # 300
     random_seconds = random.randint(0, max_seconds)
     scheduled_date = start_date + timedelta(seconds=random_seconds)
     LOGGER.info(
-        'Schedule deep exploration at %s for %s in %s',
+        '%s: schedule deep exploration at %s for %s',
+        order.region_id,
         scheduled_date.strftime("%Y-%m-%d %H:%M:%S"),
-        RESOURCE_IDS[order.resource_type],
-        order.region_id
+        RESOURCE_IDS[order.resource_type]
     )
     SCHEDULER.add_job(
         jobs.start_deep_exploration_order,
@@ -61,12 +65,13 @@ def start_deep_exploration(order_id):
         points = order_types[order.order_type](order)
         state = database.get_state(order.region_id)
         LOGGER.info(
-            'Deep explorate %s points for %s in %s',
+            '%s: deep explorate %s points for %s',
+            order.region_id,
             points,
-            RESOURCE_IDS[order.resource_type],
-            order.region_id
+            RESOURCE_IDS[order.resource_type]
         )
         api.deep_explorate(state.id, order.region_id, order.resource_type, points, True)
+    time.sleep(10)
     schedule_order(order)
 
 def get_max_points(order):

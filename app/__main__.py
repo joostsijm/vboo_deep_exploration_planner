@@ -3,7 +3,7 @@
 import time
 import sys
 
-from app import SCHEDULER, LOGGER, RESOURCE_NAMES, jobs
+from app import SCHEDULER, LOGGER, jobs
 
 
 if __name__ == '__main__':
