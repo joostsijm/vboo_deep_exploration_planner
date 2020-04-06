@@ -40,9 +40,14 @@ def parse_deep_explorations(html):
 
 def deep_explorate(state_id, region_id, resource_type, amount, alt):
     """Main function"""
+    params = {}
+    if alt:
+        params['alt'] = True
+
     response = requests.get(
         '{}main/content'.format(BASE_URL),
-        headers=HEADERS
+        headers=HEADERS,
+        params=params
     )
     soup = BeautifulSoup(response.text, 'html.parser')
     state_div = soup.find_all('div', {'class': 'index_case_50'})[1]
@@ -54,10 +59,6 @@ def deep_explorate(state_id, region_id, resource_type, amount, alt):
         state_id, current_state_id
     )
     if current_state_id == state_id:
-        params = {}
-        if alt:
-            params['alt'] = True
-
         json_data = {
             'tmp_gov': '{}_{}'.format(resource_type, amount)
         }

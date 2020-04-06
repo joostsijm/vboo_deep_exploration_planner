@@ -66,7 +66,7 @@ def start_deep_exploration(order_id):
             RESOURCE_IDS[order.resource_type],
             order.region_id
         )
-        api.deep_explorate(state.id, order.region_id, order.resource_type, points, False)
+        api.deep_explorate(state.id, order.region_id, order.resource_type, points, True)
     schedule_order(order)
 
 def get_max_points(order):
@@ -78,7 +78,7 @@ def get_max_points(order):
 def get_fixed_points(order):
     """Get  deep exploration points for order"""
     return order.amount
-    
+
 def get_percentage_points(order):
     """Get  deep exploration points for order"""
     region = database.get_region(order.region_id)
@@ -87,7 +87,7 @@ def get_percentage_points(order):
         order.amount,
         order.resource_type
     )
-    
+
 def get_auto_points(order):
     """Get  deep exploration points for order"""
     return 1
