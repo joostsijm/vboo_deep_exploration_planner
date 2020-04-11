@@ -81,7 +81,6 @@ def get_state(region_id):
         .join(State.state_regions) \
         .filter(StateRegion.region_id == region_id) \
         .filter(StateRegion.until_date_time == None) \
-        .order_by(StateRegion.from_date_time.desc()) \
         .first()
     session.close()
     return state
